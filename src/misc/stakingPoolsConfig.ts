@@ -713,7 +713,7 @@ export const stakingPoolsConfigForChainId: Record<
         tokenAddress: '0x8a2afD8Fe79F8C694210eB71f4d726Fc8cAFdB31',
         iconUrl: '/static/Avely.webp',
         name: 'Amazing Pool (Avely)',
-        poolType: 'LIQUID',
+        poolType: StakingPoolType.LIQUID,
         tokenDecimals: 18,
         tokenSymbol: 'aZIL',
         minimumStake: 100000000000000000000n,
