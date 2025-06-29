@@ -707,6 +707,21 @@ export const stakingPoolsConfigForChainId: Record<
       delegatorDataProvider: fetchLiquidDelegatorDataFromNetwork,
     },
     {
+        definition: {
+        id: 'MHgxZjBl',
+        address: '0x1f0e86Bc299Cc66df2e5512a7786C3F528C0b5b6',
+        tokenAddress: '0x8a2afD8Fe79F8C694210eB71f4d726Fc8cAFdB31',
+        iconUrl: '/static/Avely.webp',
+        name: 'Amazing Pool (Avely)',
+        poolType: 'LIQUID',
+        tokenDecimals: 18,
+        tokenSymbol: 'aZIL',
+        minimumStake: 100000000000000000000n,
+        withdrawPeriodInMinutes: 20160
+      },
+      delegatorDataProvider: fetchLiquidDelegatorDataFromNetwork,
+    },
+    {
       definition: {
         id: "MHgxMzEx",
         address: "0x1311059DD836D7000Dc673eA4Cc834fe04e9933C",
@@ -818,9 +833,39 @@ export const stakingPoolsConfigForChainId: Record<
         withdrawPeriodInMinutes: twoWeeksInMinutes,
       },
       delegatorDataProvider: fetchLiquidDelegatorDataFromNetwork,
-    },
+    },    
     {
       definition: {
+        id: 'MHhDRGIw',
+        address: '0xCDb0B23Db1439b28689844FD093C478d73C0786A',
+        tokenAddress: '0x0000000000000000000000000000000000000000',
+        iconUrl: '/static/2ZilMoon.webp',
+        name: '2ZilMoon (Make Zilliqa Great Again)',
+        poolType: 'NON_LIQUID',
+        tokenDecimals: 18,
+        tokenSymbol: 'ZIL',
+        minimumStake: 100000000000000000000n,
+        withdrawPeriodInMinutes: 20160
+      },
+      delegatorDataProvider: fetchNonLiquidDelegatorDataFromNetwork,
+     },
+     {
+        definition: {
+         id: 'MHgwNjhD',
+         address: '0x068C599686d2511AD709B8b4C578549A65D19491',
+         tokenAddress: '0x0000000000000000000000000000000000000000',
+         iconUrl: '/static/AlphaZil.webp',
+         name: 'AlphaZil (former Ezil)',
+         poolType: 'NON_LIQUID',
+         tokenDecimals: 18,
+         tokenSymbol: 'ZIL',
+         minimumStake: 100000000000000000000n,
+         withdrawPeriodInMinutes: 20160
+       },
+       delegatorDataProvider: fetchNonLiquidDelegatorDataFromNetwork,
+     },
+     { 
+       definition: {
         id: "MHhGMzVF",
         address: "0xF35E17333Bd4AD7b11e18f750AFbccE14e4101b7",
         tokenAddress: "0x0000000000000000000000000000000000000000",
