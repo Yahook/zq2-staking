@@ -357,6 +357,16 @@ const HomePage = () => {
     StakingPoolType.LIQUID
   )
 
+  // Автоматическое переключение вкладки по типу выбранного пула
+  useEffect(() => {
+    if (stakingPoolForView) {
+      const poolType = stakingPoolForView.stakingPool.definition.poolType;
+      if (selectedPoolType !== poolType) {
+        setSelectedPoolType(poolType);
+      }
+    }
+  }, [stakingPoolForView]);
+
   //change this to true to show the alert when having issues in the site
   const [showAlert] = useState(false)
 
