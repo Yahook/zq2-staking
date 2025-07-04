@@ -246,6 +246,8 @@ export const stakingPoolsConfigForChainId: Record<
       definition: {
         id: "pool1",
         name: "Avely",
+        description:
+          "🌟 Avely was the first liquid staking on Zilliqa!\nWe built the most advanced smart contracts and put our 💙 and expertise into every line of code.\nBy supporting us, you’re not just staking — you’re empowering us to keep building and make Zilliqa stronger than ever.\nJoin us and stake with confidence!",
         poolType: StakingPoolType.LIQUID,
         address: "0x1234567890234567890234567890234567890",
         tokenAddress: "0x1234567890234567890234567890234567233",
@@ -914,6 +916,8 @@ export const stakingPoolsConfigForChainId: Record<
         id: "MHgxZjBl",
         address: "0x1f0e86Bc299Cc66df2e5512a7786C3F528C0b5b6",
         tokenAddress: "0x8a2afD8Fe79F8C694210eB71f4d726Fc8cAFdB31",
+        description:
+          "🌟 Avely was the first liquid staking on Zilliqa!\nWe built the most advanced smart contracts and put our 💙 and expertise into every line of code.\nBy supporting us, you’re not just staking — you’re empowering us to keep building and make Zilliqa stronger than ever.\nJoin us and stake with confidence!",
         iconUrl: "/static/logo_amazing_pool.svg",
         name: "Amazing Pool - Avely and ZilPay",
         poolType: StakingPoolType.LIQUID,

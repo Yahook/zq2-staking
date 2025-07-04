@@ -1,3 +1,4 @@
+import React from "react"
 import StakingCalculator from "@/components/stakingCalculator"
 import UnstakingCalculator from "@/components/unstakingCalculator"
 import WithdrawZilPanel from "@/components/withdrawUnstakedZilPanel"
@@ -392,9 +393,14 @@ const StakingPoolDetailsView: React.FC<StakingPoolDetailsViewProps> = ({
         <div className="pb-7 px-4 lg:pr-2.5 4k:pr-6 xs:mx-5 lg:mx-7 4k:mx-10 text-gray2">
           {convertMarkdownLinksToNextJsObjects(
             stakingPoolData.definition.description
-          ).map((item) => {
+          ).map((item, idx) => {
             if (item.objectType === "text") {
-              return <span key={item.value}>{item.value}</span>
+              return item.value.split("\n").map((line, i, arr) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i < arr.length - 1 && <br />}
+                </React.Fragment>
+              ))
             } else if (item.objectType === "link") {
               return (
                 <a
