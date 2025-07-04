@@ -374,7 +374,7 @@ const HomePage = () => {
   return (
     <>
       <Head>
-        <title>Not official | ZIL Staking Portal</title>
+        <title>✅ Zilliqa Staking - Stake ZIL and earn rewards</title>
       </Head>
       <div
         className={`h-screen w-screen relative transition-opacity duration-1000 overflow-hidden flex flex-col gap-3 lg:gap-[4vh] ${
