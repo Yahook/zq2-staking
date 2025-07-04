@@ -71,7 +71,7 @@ export function formatUnitsToHumanReadable(
 ): string {
   const raw = parseFloat(formatUnits(value, decimals))
   // Округляем до целого и форматируем с разделителем тысяч
-  return Math.round(raw).toLocaleString('en-US')
+  return Math.round(raw).toLocaleString("en-US")
 }
 
 /**
