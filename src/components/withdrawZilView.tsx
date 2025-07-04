@@ -380,6 +380,12 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
       (item) => item.stakingPool.definition.poolType === StakingPoolType.NORMAL
     )
 
+  // Подсчёт общего заработка по всем пулам
+  const totalRewards = nonLiquidRewards.reduce(
+    (acc, reward) => acc + reward.rewardInfo.zilRewardAmount,
+    0n
+  )
+
   return (
     <div className="relative flex flex-col gap-2 4k:gap-2.5 h-full max-lg:pb-10">
       <div className=" text-center mx-4 p-4">
@@ -400,6 +406,7 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
           </h1>
         )}
       </div>
+
       {anyItemsAvailable && hasLiquid && hasNormal && (
         <div className="flex justify-center items-center gap-x-2.5 mt-3 4k:mt-6 mb-2.5 4k:mb-5 max-h-[5vh] mx-3 lg:mx-2 xl:mx-5 4k:mx-6 px-4">
           <div className="text-sm text-gray2">Filter by</div>
@@ -421,6 +428,21 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
           className=" flex-1 overflow-y-scroll  pb-6 mb-16 lg:mb-0 px-2 mx-2 4k:mr-7 lg:mr-5 4k:pr-7 lg:pr-5"
         >
           <div className="grid grid-cols-1 gap-4 lg:gap-5 4k:gap-6 lg:pb-10 ">
+            {/* Блок с общим заработком */}
+            {totalRewards > 0n && (
+              <div className="teal-border-bottom bg-aqua-gradient rounded-[20px]">
+                <div className="flex flex-col justify-center items-center py-6 4k:py-7 px-3 lg:px-9 4k:px-12">
+                  <div className="text-gray2 body2 mb-2">Total Rewards</div>
+                  <div className="bold33 text-white">
+                    {formatUnitsToHumanReadable(totalRewards, 18)} ZIL
+                  </div>
+                  <div className="text-gray3 body2 mt-2">
+                    Across all staking pools
+                  </div>
+                </div>
+              </div>
+            )}
+
             {availableForUnstaking
               .filter(filterByPoolType)
               .map((unstakeClaim, claimIdx) => (
