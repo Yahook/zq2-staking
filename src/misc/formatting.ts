@@ -70,8 +70,16 @@ export function formatUnitsToHumanReadable(
   decimals: number
 ): string {
   const raw = parseFloat(formatUnits(value, decimals))
-  // Округляем до целого и форматируем с разделителем тысяч
-  return Math.round(raw).toLocaleString("en-US")
+  if (raw < 1000) {
+    // Для маленьких сумм — 2 знака после запятой, без разделителя тысяч
+    return raw.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  } else {
+    // Для больших — округляем до целого и разделяем тысячи
+    return Math.round(raw).toLocaleString("en-US")
+  }
 }
 
 /**
