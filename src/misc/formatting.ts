@@ -61,23 +61,17 @@ export function convertZilValueToToken(
 }
 
 /**
- * returns @param value formatted to a string that is using the most appropriate unit
- * e.g., 1,000,000 ZIL will be formatted as 1M ZIL
+ * Возвращает @param value в виде строки, округлённой до целого числа с разделителем тысяч (например, 12,345)
  *
- * @note this function is useful for displaying large values
+ * @note эта функция полезна для отображения больших значений ZIL без сокращений (k, m)
  */
 export function formatUnitsToHumanReadable(
   value: bigint,
   decimals: number
 ): string {
   const raw = parseFloat(formatUnits(value, decimals))
-
-  const formatter = new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    compactDisplay: "short",
-  })
-
-  return formatter.format(raw)
+  // Округляем до целого и форматируем с разделителем тысяч
+  return Math.round(raw).toLocaleString('en-US')
 }
 
 /**
