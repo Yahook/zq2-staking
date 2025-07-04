@@ -17,6 +17,7 @@ import MobilePopup from "@/components/mobilePopup"
 import ZilGiveaway from "@/components/zilGiveaway"
 import { StakingPoolType } from "@/misc/stakingPoolsConfig"
 import Link from "next/link"
+import Head from "next/head"
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(false)
@@ -372,6 +373,9 @@ const HomePage = () => {
 
   return (
     <>
+      <Head>
+        <title>Not official | ZIL Staking Portal</title>
+      </Head>
       <div
         className={`h-screen w-screen relative transition-opacity duration-1000 overflow-hidden flex flex-col gap-3 lg:gap-[4vh] ${
           isVisible ? "opacity-100" : "opacity-0"
@@ -380,13 +384,16 @@ const HomePage = () => {
         {/* Header */}
         <div className="w-full flex flex-col items-center justify-center text-white border-b-[0.5px] border-gray3">
           <div className="flex max-w-screen-2xl w-full justify-between px-4 lg:px-8 xl:px-12 4k:px-16 4k:max-w-screen-4k items-center py-4 lg:py-5">
-            <div className="flex items-center">
+            <div className="flex flex-col items-start">
               <Logo
                 selectedPoolType={selectedPoolType}
                 onClick={() =>
                   router.push({ query: {} }, undefined, { shallow: true })
                 }
               />
+              <div className="text-xs font-bold mt-1 text-tealPrimary">
+                Not official Zilliqa staking portal
+              </div>
             </div>
 
             <div className="flex gap-2 sm:gap-2.5 items-center">
