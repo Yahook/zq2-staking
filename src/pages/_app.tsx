@@ -16,6 +16,7 @@ import { AppConfig } from "./api/config"
 import { AppConfigStorage } from "@/contexts/appConfigStorage"
 import Head from "next/head"
 import { GoogleTagManager } from "@next/third-parties/google"
+import { RewardsTrackingProvider } from "@/contexts/rewardsTracking"
 
 const queryClient = new QueryClient()
 
@@ -127,8 +128,10 @@ export default function App({ Component, pageProps }: AppProps) {
                   <WalletConnector.Provider>
                     <StakingPoolsStorage.Provider>
                       <StakingOperations.Provider>
-                        <Component {...pageProps} />
-                        <DummyWalletSelector />
+                        <RewardsTrackingProvider>
+                          <Component {...pageProps} />
+                          <DummyWalletSelector />
+                        </RewardsTrackingProvider>
                       </StakingOperations.Provider>
                     </StakingPoolsStorage.Provider>
                   </WalletConnector.Provider>

@@ -15,10 +15,13 @@ import {
 } from "@/misc/walletsConfig"
 import { Button, Tooltip } from "antd"
 import Image from "next/image"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useState, useEffect, useRef } from "react"
 import FilterBtn from "@/components/filterBtn"
 import FastFadeScroll from "@/components/fastFadeScroll"
 import { showNewMessage } from "@intercom/messenger-js-sdk"
+import { useRewardsTracking } from "@/contexts/rewardsTracking"
+import { RewardsProgress } from "./rewardsProgress"
+import { WalletConnector } from "@/contexts/walletConnector"
 
 interface UnstakeCardProps {
   available: boolean
@@ -316,7 +319,9 @@ interface WithdrawZilViewProps {
   setViewClaim: Dispatch<SetStateAction<boolean>>
 }
 
-const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
+export default function WithdrawZilView({
+  setViewClaim,
+}: WithdrawZilViewProps) {
   const {
     availableForUnstaking,
     pendingUnstaking,
@@ -328,11 +333,24 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
   const { claimUnstake, claimReward, stakeReward } =
     StakingOperations.useContainer()
 
+  const { walletAddress } = WalletConnector.useContainer()
+
+  const { trackRewards, getRewardsDiff } = useRewardsTracking()
+
   const anyItemsAvailable =
     availableForUnstaking.length > 0 ||
     pendingUnstaking.length > 0 ||
     nonLiquidRewards.length > 0
   const [selectedPoolType, setSelectedPoolType] = useState("ALL")
+  const [showRewardsProgress, setShowRewardsProgress] = useState(true)
+  const trackedWallets = useRef<Set<string>>(new Set())
+  const [fixedTotalRewards, setFixedTotalRewards] = useState<bigint>(0n)
+  const [fixedProgressData, setFixedProgressData] = useState<{
+    diff: bigint
+    timeDiff: number
+    dailyProjection: bigint
+    monthlyProjection: bigint
+  } | null>(null)
 
   const filters = [
     {
@@ -385,6 +403,41 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
     (acc, reward) => acc + reward.rewardInfo.zilRewardAmount,
     0n
   )
+
+  // Фиксируем totalRewards при первой загрузке или смене кошелька
+  useEffect(() => {
+    if (totalRewards > 0n && fixedTotalRewards === 0n) {
+      setFixedTotalRewards(totalRewards)
+
+      // Сразу рассчитываем и фиксируем данные прогресса
+      if (walletAddress) {
+        const progressData = getRewardsDiff(totalRewards, walletAddress)
+        setFixedProgressData(progressData)
+
+        // Обновляем данные в localStorage для следующего захода
+        trackRewards(totalRewards, walletAddress)
+      }
+    }
+  }, [
+    totalRewards,
+    fixedTotalRewards,
+    walletAddress,
+    getRewardsDiff,
+    trackRewards,
+  ])
+
+  // Сброс всех фиксированных данных при смене кошелька
+  useEffect(() => {
+    setFixedTotalRewards(0n)
+    setFixedProgressData(null)
+    setShowRewardsProgress(true)
+  }, [walletAddress])
+
+  // Получение данных о прогрессе наград - используем фиксированные данные
+  const rewardsProgress =
+    walletAddress && fixedProgressData && showRewardsProgress
+      ? fixedProgressData
+      : null
 
   return (
     <div className="relative flex flex-col gap-2 4k:gap-2.5 h-full max-lg:pb-10">
@@ -441,6 +494,16 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Блок с прогрессом наград */}
+            {rewardsProgress && (
+              <RewardsProgress
+                rewardsDiff={rewardsProgress.diff}
+                timeDiff={rewardsProgress.timeDiff}
+                dailyProjection={rewardsProgress.dailyProjection}
+                monthlyProjection={rewardsProgress.monthlyProjection}
+              />
             )}
 
             {availableForUnstaking
@@ -506,5 +569,3 @@ const WithdrawZilView: React.FC<WithdrawZilViewProps> = ({ setViewClaim }) => {
     </div>
   )
 }
-
-export default WithdrawZilView
