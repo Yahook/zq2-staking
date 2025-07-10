@@ -256,21 +256,17 @@ const StakingPoolDetailsView: React.FC<StakingPoolDetailsViewProps> = ({
 
     isPoolLiquid() &&
       stakingPoolData.data &&
+      userStakingPoolData?.stakingTokenAmount &&
       greyInfoEntry(
-        "",
-        <>
-          1 {stakingPoolData.definition.tokenSymbol} = ~ <br />
-          {formatUnitsWithMaxPrecision(
-            convertTokenToZil(
-              parseEther("1"),
-              stakingPoolData.data.zilToTokenRate
-            ),
-            18,
-            3
-          )}{" "}
-          ZIL
-        </>,
-        ""
+        "ZIL backed",
+        `${formatUnitsToHumanReadable(
+          convertTokenToZil(
+            userStakingPoolData.stakingTokenAmount,
+            stakingPoolData.data.zilToTokenRate
+          ),
+          18
+        )} ZIL`,
+        "Amount of ZIL backing your liquid staking tokens"
       ),
   ]
 
