@@ -702,8 +702,7 @@ export const stakingPoolsConfigForChainId: Record<
         tokenAddress: "0xc85b0db68467dede96A7087F4d4C47731555cA7A",
         iconUrl: "/static/logo_Plunderswap.webp",
         name: "PlunderSwap",
-        description:
-          "A forked version of PancakeSwap.",
+        description: "A forked version of PancakeSwap.",
         poolType: StakingPoolType.LIQUID,
         tokenDecimals: 18,
         tokenSymbol: "pZIL",
