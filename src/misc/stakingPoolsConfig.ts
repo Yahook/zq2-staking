@@ -703,7 +703,7 @@ export const stakingPoolsConfigForChainId: Record<
         iconUrl: "/static/logo_Plunderswap.webp",
         name: "PlunderSwap",
         description:
-          "We pay extra. The only validator with airdrops + reward points. Your stake powers Zilliqa's top dev team. [Stake smarter!](https://stake.plunderswap.com/)",
+          "The main achievement of these guys is that they forked PancakeSwap. That’s it — nothing more.",
         poolType: StakingPoolType.LIQUID,
         tokenDecimals: 18,
         tokenSymbol: "pZIL",
