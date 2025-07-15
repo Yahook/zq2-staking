@@ -997,23 +997,6 @@ export const stakingPoolsConfigForChainId: Record<
     },
     {
       definition: {
-        id: "MHgyNjMy",
-        address: "0x26322705FcBF5d3065707C408B6594912dAa3488",
-        tokenAddress: "0x0000000000000000000000000000000000000000",
-        iconUrl: "/static/logo_cryptec.jpg",
-        name: "Cryptech-Hacken",
-        description:
-          "Cryptech is Hacken's official node validator provider, combining Cryptech's expertise in validation with Hacken's top cybersecurity services to ensure secure, efficient, and robust staking operations.",
-        poolType: StakingPoolType.NORMAL,
-        tokenDecimals: 18,
-        tokenSymbol: "ZIL",
-        minimumStake: 100000000000000000000n,
-        withdrawPeriodInMinutes: twoWeeksInMinutes,
-      },
-      delegatorDataProvider: fetchNonLiquidDelegatorDataFromNetwork,
-    },
-    {
-      definition: {
         id: "MHg2MDU3",
         address: "0x60571E6c6d55109e6705d17956201a0Cf39f1198",
         tokenAddress: "0x0000000000000000000000000000000000000000",
