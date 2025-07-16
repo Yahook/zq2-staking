@@ -652,7 +652,7 @@ export const stakingPoolsConfigForChainId: Record<
         iconUrl: "/static/logo_torchwallet.webp",
         name: "TorchWallet.io",
         description:
-          "By using Torch, you stay eligible for potential airdrops & rewards in the Zilliqa ecosystem. Torch is the most advanced and widely used mobile and desktop wallet for Zilliqa, offering a smooth experience for staking, instant unstaking, DEX swapping, and full support for both Legacy & EVM accounts. If you stake here on the portal, it will automatically appear in the app. [Try it out now!](https://torchwallet.io/)",
+          "Torch is a Zilliqa wallet that supports both EVM and Legacy accounts. Available as a mobile app and desktop extension.",
         poolType: StakingPoolType.LIQUID,
         tokenDecimals: 18,
         tokenSymbol: "tZIL",
@@ -802,7 +802,7 @@ export const stakingPoolsConfigForChainId: Record<
         iconUrl: "/static/logo_torchwallet.webp",
         name: "TorchWallet.io",
         description:
-          "By using Torch, you stay eligible for potential airdrops & rewards in the Zilliqa ecosystem. Torch is the most advanced and widely used mobile and desktop wallet for Zilliqa, offering a smooth experience for staking, instant unstaking, DEX swapping, and full support for both Legacy & EVM accounts. If you stake here on the portal, it will automatically appear in the app. [Try it out now!](https://torchwallet.io/)",
+          "Torch is a Zilliqa wallet that supports both EVM and Legacy accounts. Available as a mobile app and desktop extension.",
         poolType: StakingPoolType.LIQUID,
         tokenDecimals: 18,
         tokenSymbol: "tZIL",
