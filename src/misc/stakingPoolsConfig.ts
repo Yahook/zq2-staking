@@ -736,7 +736,7 @@ export const stakingPoolsConfigForChainId: Record<
         iconUrl: "/static/logo_cex.webp",
         name: "CEX.IO",
         description:
-          "[CEX.IO](https://cex.io) is an entire ecosystem of products and services that allow customers to engage with the decentralized economy",
+          "CEX.IO is an entire ecosystem of products and services that allow customers to engage with the decentralized economy.",
         poolType: StakingPoolType.NORMAL,
         tokenDecimals: 18,
         tokenSymbol: "ZIL",
