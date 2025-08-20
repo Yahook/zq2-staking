@@ -99,6 +99,20 @@ export function formatUnitsWithMaxPrecision(
   return formatted
 }
 
+/**
+ * Возвращает @param value в виде строки с точностью до 5 знаков после запятой
+ * Убирает лишние нули в конце
+ *
+ * @note эта функция полезна для точного отображения значений в claims
+ */
+export function formatUnitsWithPrecision5(
+  value: bigint,
+  decimals: number
+): string {
+  const raw = parseFloat(formatUnits(value, decimals))
+  return raw.toFixed(5).replace(/\.?0+$/, "")
+}
+
 export function getTxExplorerUrl(txHash: string, chainId: number) {
   return `${getChain(chainId).blockExplorers.default.url}/tx/${txHash}`
 }

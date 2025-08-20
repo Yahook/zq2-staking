@@ -3,6 +3,7 @@ import { StakingPoolsStorage } from "@/contexts/stakingPoolsStorage"
 
 import {
   formatUnitsToHumanReadable,
+  formatUnitsWithPrecision5,
   getHumanFormDuration,
 } from "@/misc/formatting"
 import { StakingPool, StakingPoolType } from "@/misc/stakingPoolsConfig"
@@ -242,13 +243,10 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
             <div>{getHumanFormDuration(pendingUnstake[0].availableAt)}</div>
             {stakingPoolData.data ? (
               <div>
-                {parseFloat(
-                  formatUnits(pendingUnstake[0].zilAmount, 18)
-                ).toFixed(3)}{" "}
-                ZIL
+                {formatUnitsWithPrecision5(pendingUnstake[0].zilAmount, 18)} ZIL
               </div>
             ) : (
-              <div className="loading-blur">00.000</div>
+              <div className="loading-blur">00.00000</div>
             )}
           </div>
         </div>
@@ -272,12 +270,11 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
               {stakingPoolData.data ? (
                 <div className="flex gap-2.5">
                   <div className="body1 text-white1">
-                    {parseFloat(formatUnits(claim.zilAmount, 18)).toFixed(3)}{" "}
-                    ZIL
+                    {formatUnitsWithPrecision5(claim.zilAmount, 18)} ZIL
                   </div>
                 </div>
               ) : (
-                <div className="loading-blur">00.000 ZIL</div>
+                <div className="loading-blur">00.00000 ZIL</div>
               )}
               <div className="regular-base text-white1">
                 {getHumanFormDuration(claim.availableAt)}
