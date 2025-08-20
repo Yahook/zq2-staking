@@ -1,5 +1,5 @@
 import React from "react"
-import { formatUnitsToHumanReadable } from "@/misc/formatting"
+import { formatUnitsWithPrecision5 } from "@/misc/formatting"
 
 interface RewardsProgressProps {
   rewardsDiff: bigint
@@ -35,7 +35,7 @@ export const RewardsProgress: React.FC<RewardsProgressProps> = ({
       <div className="flex flex-col justify-center items-center py-6 4k:py-7 px-3 lg:px-9 4k:px-12">
         <div className="text-gray2 body2 mb-2">Rewards Progress</div>
         <div className="bold33 text-white mb-2">
-          +{formatUnitsToHumanReadable(rewardsDiff, 18)} ZIL
+          +{formatUnitsWithPrecision5(rewardsDiff, 18)} ZIL
         </div>
         <div className="text-gray3 body2 mb-3">
           Since last visit ({formatTimeDiff(timeDiff)})
@@ -46,13 +46,13 @@ export const RewardsProgress: React.FC<RewardsProgressProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-gray2 text-sm">Daily projection:</span>
               <span className="text-white font-semibold">
-                {formatUnitsToHumanReadable(dailyProjection, 18)} ZIL
+                {formatUnitsWithPrecision5(dailyProjection, 18)} ZIL
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray2 text-sm">Monthly projection:</span>
               <span className="text-white font-semibold">
-                {formatUnitsToHumanReadable(monthlyProjection, 18)} ZIL
+                {formatUnitsWithPrecision5(monthlyProjection, 18)} ZIL
               </span>
             </div>
           </div>

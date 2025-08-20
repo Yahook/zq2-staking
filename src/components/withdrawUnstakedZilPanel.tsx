@@ -87,11 +87,11 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                   </span>
                 </div>
                 <div>
-                  {`${formatUnitsToHumanReadable(reward.zilRewardAmount, 18)} ZIL`}
+                  {`${formatUnitsWithPrecision5(reward.zilRewardAmount, 18)} ZIL`}
                 </div>
               </div>
             ) : (
-              <div className="loading-blur"> 00000 zil</div>
+              <div className="loading-blur">00.00000 ZIL</div>
             )}
             <div className=" lg:w-1/3 max-w-[150px] sm:max-w-[250px] w-full">
               {getMinimalPoolStakingAmount(reward.address) >
@@ -101,7 +101,7 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                   arrow={true}
                   overlayClassName="custom-tooltip"
                   className="mr-1"
-                  title={`Reward is less than the minimal staking amount of ${formatUnitsToHumanReadable(
+                  title={`Reward is less than the minimal staking amount of ${formatUnitsWithPrecision5(
                     getMinimalPoolStakingAmount(reward.address),
                     18
                   )} ZIL`}
@@ -199,12 +199,10 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                     Claimable Withdrawals
                   </span>
                 </div>
-                <div>
-                  {formatUnitsToHumanReadable(availableUnstake, 18)} ZIL
-                </div>
+                <div>{formatUnitsWithPrecision5(availableUnstake, 18)} ZIL</div>
               </div>
             ) : (
-              <div className="loading-blur">000.000 ZIL</div>
+              <div className="loading-blur">00.00000 ZIL</div>
             )}
             <div className="max-lg:gap-2.5 max-lg:flex lg:w-1/3 max-w-[150px] sm:max-w-[250px] w-full">
               <Button
