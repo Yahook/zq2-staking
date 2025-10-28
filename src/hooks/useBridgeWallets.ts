@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import {
   detectAllWallets,
   DetectedWallet,
@@ -87,40 +87,46 @@ export function useBridgeWallets() {
   }
 
   // Register active wallet with deBridge widget
-  const registerWalletWithWidget = (widget: DeBridgeWidget, force = false) => {
-    if (!activeWallet) {
-      return
-    }
+  const registerWalletWithWidget = useCallback(
+    (widget: DeBridgeWidget, force = false) => {
+      if (!activeWallet) {
+        return
+      }
 
-    // Skip if same wallet is already registered and not forcing
-    if (!force && lastRegisteredWallet.current === activeWallet.uuid) {
-      return
-    }
+      // Skip if same wallet is already registered and not forcing
+      if (!force && lastRegisteredWallet.current === activeWallet.uuid) {
+        return
+      }
 
-    try {
-      widget.setExternalEVMWallet({
-        provider: activeWallet.provider,
-        name: activeWallet.name,
-        imageSrc: activeWallet.icon,
-      })
-      console.debug(`[Bridge] Registered wallet: ${activeWallet.name}`)
-      walletRegistered.current = true
-      lastRegisteredWallet.current = activeWallet.uuid
-    } catch (error) {
-      console.warn(`[Bridge] Failed to register ${activeWallet.name}:`, error)
-    }
-  }
+      try {
+        widget.setExternalEVMWallet({
+          provider: activeWallet.provider,
+          name: activeWallet.name,
+          imageSrc: activeWallet.icon,
+        })
+        console.debug(`[Bridge] Registered wallet: ${activeWallet.name}`)
+        walletRegistered.current = true
+        lastRegisteredWallet.current = activeWallet.uuid
+      } catch (error) {
+        console.warn(`[Bridge] Failed to register ${activeWallet.name}:`, error)
+      }
+    },
+    [activeWallet]
+  )
 
   // Setup widget event listeners
-  const setupWidgetEvents = (widget: DeBridgeWidget, force = false) => {
-    // Listen for needConnect event to register active wallet
-    widget.on("needConnect", () => {
-      registerWalletWithWidget(widget, true) // Force registration on needConnect
-    })
+  const setupWidgetEvents = useCallback(
+    (widget: DeBridgeWidget, force = false) => {
+      // Listen for needConnect event to register active wallet
+      widget.on("needConnect", () => {
+        registerWalletWithWidget(widget, true) // Force registration on needConnect
+      })
 
-    // Also register wallet immediately in case needConnect was already fired
-    registerWalletWithWidget(widget, force)
-  }
+      // Also register wallet immediately in case needConnect was already fired
+      registerWalletWithWidget(widget, force)
+    },
+    [registerWalletWithWidget]
+  ) // Depend on the memoized function
 
   // Reset registration state when active wallet changes
   useEffect(() => {
@@ -129,15 +135,21 @@ export function useBridgeWallets() {
   }, [activeWallet])
 
   // Re-detect active wallet when accounts change
-  const refreshActiveWallet = async () => {
+  const refreshActiveWallet = useCallback(async () => {
     if (detectedWallets.length > 0) {
       const active = await findActiveWallet(detectedWallets)
       // Only update if the active wallet actually changed
       if (active?.uuid !== activeWallet?.uuid) {
+        console.debug(
+          "[useBridgeWallets] Active wallet changed from",
+          activeWallet?.name || "none",
+          "to",
+          active?.name || "none"
+        )
         setActiveWallet(active)
       }
     }
-  }
+  }, [detectedWallets, activeWallet])
 
   // Initial wallet detection
   useEffect(() => {
@@ -147,25 +159,42 @@ export function useBridgeWallets() {
   // Listen for account changes to update active wallet
   useEffect(() => {
     let refreshTimeout: NodeJS.Timeout | null = null
+    let lastRefreshTime = 0
+    const MIN_REFRESH_INTERVAL = 2000 // Minimum 2 seconds between refreshes
 
     const debouncedRefresh = () => {
+      const now = Date.now()
+      if (now - lastRefreshTime < MIN_REFRESH_INTERVAL) {
+        return // Skip if too soon
+      }
+
       if (refreshTimeout) {
         clearTimeout(refreshTimeout)
       }
       refreshTimeout = setTimeout(() => {
+        lastRefreshTime = Date.now()
         refreshActiveWallet()
-      }, 500) // Increased delay to prevent too frequent updates
+      }, 1000) // Increased delay to 1 second
     }
 
-    const handleAccountsChanged = () => {
-      debouncedRefresh()
+    const handleAccountsChanged = (accounts: string[]) => {
+      // Only refresh if there are actual accounts or if accounts were cleared
+      if (accounts?.length > 0 || (activeWallet && accounts?.length === 0)) {
+        console.debug(
+          "[useBridgeWallets] Accounts changed, length:",
+          accounts?.length || 0
+        )
+        debouncedRefresh()
+      }
     }
 
     const handleConnect = () => {
+      console.debug("[useBridgeWallets] Wallet connected")
       debouncedRefresh()
     }
 
     const handleDisconnect = () => {
+      console.debug("[useBridgeWallets] Wallet disconnected")
       debouncedRefresh()
     }
 
