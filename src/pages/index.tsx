@@ -2,6 +2,8 @@ import LoginView from "@/components/loginView"
 import StakingPoolDetailsView from "@/components/stakingPoolDetailsView"
 import StakingPoolsList from "@/components/stakingPoolsList"
 import WithdrawZilView from "@/components/withdrawZilView"
+import BridgeView from "@/components/bridgeView"
+import TabNavigation, { TabType } from "@/components/tabNavigation"
 import { AppConfigStorage } from "@/contexts/appConfigStorage"
 import { StakingOperations } from "@/contexts/stakingOperations"
 import { StakingPoolsStorage } from "@/contexts/stakingPoolsStorage"
@@ -22,6 +24,20 @@ import Head from "next/head"
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [viewClaim, setViewClaim] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabType>("stake")
+
+  // Handle tab changes with URL updates
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    router.push(
+      {
+        pathname: "/",
+        query: tab === "bridge" ? { tab: "bridge" } : {},
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
 
   useEffect(() => {
     setIsVisible(true)
@@ -29,6 +45,13 @@ const HomePage = () => {
 
   const { appConfig, isPreviewAuthenticated } = AppConfigStorage.useContainer()
   const router = useRouter()
+
+  // Initialize tab from URL
+  useEffect(() => {
+    if (router.query.tab === "bridge") {
+      setActiveTab("bridge")
+    }
+  }, [router.query.tab])
 
   if (appConfig.appUrl === "https://stake.zilliqa.com") {
     router.replace("/coming-soon")
@@ -115,135 +138,137 @@ const HomePage = () => {
           />
         )
 
-  const mobileBottomNavition = (
-    <div className="fixed bottom-0 left-0 lg:hidden w-full mt-7t-1.5">
-      <div className="flex justify-between items-center gap-1 mb-5 mt-2 mx-5 md:mx-7">
-        {isWalletConnected ? (
-          <>
-            <div className="flex justify-between items-center w-full max-lg:mr-16">
-              {mobileShowClaims || stakingPoolForView ? (
-                <div className="max-lg:w-full lg:min-w-[320px] mx-auto">
-                  <div
-                    className="justify-start flex items-center bold12"
-                    onClick={() => {
-                      router.back()
-                    }}
-                  >
-                    <Image
-                      className="mr-2 xs:mr-3 transform transition-transform ease-out duration-500 group-hover:-translate-x-2"
-                      src={ArrowBackAqua}
-                      alt={"arrow icon"}
-                      width={8}
-                      height={4.5}
-                    />
-                    Back
+  const mobileBottomNavition =
+    activeTab === "stake" ? (
+      <div className="fixed bottom-0 left-0 lg:hidden w-full mt-7t-1.5">
+        <div className="flex justify-between items-center gap-1 mb-5 mt-2 mx-5 md:mx-7">
+          {isWalletConnected ? (
+            <>
+              <div className="flex justify-between items-center w-full max-lg:mr-16">
+                {mobileShowClaims || stakingPoolForView ? (
+                  <div className="max-lg:w-full lg:min-w-[320px] mx-auto">
+                    <div
+                      className="justify-start flex items-center bold12"
+                      onClick={() => {
+                        router.back()
+                      }}
+                    >
+                      <Image
+                        className="mr-2 xs:mr-3 transform transition-transform ease-out duration-500 group-hover:-translate-x-2"
+                        src={ArrowBackAqua}
+                        alt={"arrow icon"}
+                        width={8}
+                        height={4.5}
+                      />
+                      Back
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div></div>
-              )}
+                ) : (
+                  <div></div>
+                )}
 
-              <div className="flex items-center gap-3">
-                <div
-                  className={`justify-start bold12 relative max-lg:w-full lg:min-w-[320px] mx-auto whitespace-nowrap
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`justify-start bold12 relative max-lg:w-full lg:min-w-[320px] mx-auto whitespace-nowrap
                         ${!mobileShowClaims || (mobileShowClaims && stakingPoolForView) ? "text-tealPrimary" : "text-gray1"}
                         `}
-                  onClick={() => {
-                    if (stakingPoolForView) {
-                      return
-                    }
-
-                    router.push(
-                      {
-                        query: {},
-                      },
-                      undefined,
-                      { shallow: true }
-                    )
-                  }}
-                >
-                  {stakingPoolForView
-                    ? `${stakingPoolForView.stakingPool.definition.name}`
-                    : "Validators"}
-
-                  <span
-                    className={`absolute left-1/2 -translate-x-1/2 top-full mt-1 w-1 h-1
-                  ${!mobileShowClaims || (mobileShowClaims && stakingPoolForView) ? "bg-tealPrimary " : " bg-transparent"}
-                     rounded-full`}
-                  />
-                </div>
-
-                <div
-                  className={`h-inherit
-                      ${stakingPoolForView ? "w-1/2" : "w-full"}`}
-                >
-                  <div
-                    className={
-                      "justify-start flex items-center whitespace-nowrap "
-                    }
                     onClick={() => {
+                      if (stakingPoolForView) {
+                        return
+                      }
+
                       router.push(
                         {
-                          query: { claims: true },
+                          query: {},
                         },
                         undefined,
                         { shallow: true }
                       )
                     }}
                   >
+                    {stakingPoolForView
+                      ? `${stakingPoolForView.stakingPool.definition.name}`
+                      : "Validators"}
+
+                    <span
+                      className={`absolute left-1/2 -translate-x-1/2 top-full mt-1 w-1 h-1
+                  ${!mobileShowClaims || (mobileShowClaims && stakingPoolForView) ? "bg-tealPrimary " : " bg-transparent"}
+                     rounded-full`}
+                    />
+                  </div>
+
+                  <div
+                    className={`h-inherit
+                      ${stakingPoolForView ? "w-1/2" : "w-full"}`}
+                  >
                     <div
-                      className={` relative
+                      className={
+                        "justify-start flex items-center whitespace-nowrap "
+                      }
+                      onClick={() => {
+                        router.push(
+                          {
+                            query: { claims: true },
+                          },
+                          undefined,
+                          { shallow: true }
+                        )
+                      }}
+                    >
+                      <div
+                        className={` relative
                     ${mobileShowClaims && !stakingPoolForView ? "text-tealPrimary" : "text-gray1"}
                    whitespace-nowrap bold12`}
-                    >
-                      Claims
-                      {mobileShowClaims && !stakingPoolForView && (
-                        <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-1 h-1 bg-tealPrimary rounded-full" />
-                      )}
-                    </div>
-                    {availableForUnstaking.length + pendingUnstaking.length !=
-                      0 && (
-                      <div
-                        className={`bg-red1 text-white rounded-full px-2 h-4 w-4
+                      >
+                        Claims
+                        {mobileShowClaims && !stakingPoolForView && (
+                          <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-1 h-1 bg-tealPrimary rounded-full" />
+                        )}
+                      </div>
+                      {availableForUnstaking.length + pendingUnstaking.length !=
+                        0 && (
+                        <div
+                          className={`bg-red1 text-white rounded-full px-2 h-4 w-4
                       text-8 font-bold p-0.5 ml-1 mb-5 items-center flex justify-center
                      ${availableForUnstaking.length + pendingUnstaking.length != 0 && "text-white"}`}
-                      >
-                        {availableForUnstaking.length + pendingUnstaking.length}
-                      </div>
-                    )}
+                        >
+                          {availableForUnstaking.length +
+                            pendingUnstaking.length}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {stakingPoolForView && (
-              <div className="w-1/2">
-                <div className="max-lg:w-full lg:min-w-[320px] mx-auto">
-                  <div
-                    className="justify-start flex items-center bold12"
-                    onClick={() => {
-                      router.back()
-                    }}
-                  >
-                    <Image
-                      className="mr-2 xs:mr-3 transform transition-transform ease-out duration-500 group-hover:-translate-x-2"
-                      src={ArrowBackAqua}
-                      alt={"arrow icon"}
-                      width={8}
-                      height={4.5}
-                    />
-                    Back
+            </>
+          ) : (
+            <>
+              {stakingPoolForView && (
+                <div className="w-1/2">
+                  <div className="max-lg:w-full lg:min-w-[320px] mx-auto">
+                    <div
+                      className="justify-start flex items-center bold12"
+                      onClick={() => {
+                        router.back()
+                      }}
+                    >
+                      <Image
+                        className="mr-2 xs:mr-3 transform transition-transform ease-out duration-500 group-hover:-translate-x-2"
+                        src={ArrowBackAqua}
+                        alt={"arrow icon"}
+                        width={8}
+                        height={4.5}
+                      />
+                      Back
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  )
+    ) : null
 
   const [isOpen, setIsOpen] = useState(true)
 
@@ -374,7 +399,11 @@ const HomePage = () => {
   return (
     <>
       <Head>
-        <title>✅ Zilliqa Staking - Stake ZIL and earn rewards</title>
+        <title>
+          {activeTab === "bridge"
+            ? "🌉 Zilliqa Bridge - Cross-chain transfers"
+            : "✅ Zilliqa Staking - Stake ZIL and earn rewards"}
+        </title>
       </Head>
       <div
         className={`h-screen w-screen relative transition-opacity duration-1000 overflow-hidden flex flex-col gap-3 lg:gap-[4vh] ${
@@ -410,31 +439,47 @@ const HomePage = () => {
             </div>
           )}
         </div>
-        <div className="grow relative mx-auto overflow-y-hidden max-w-screen-4k w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 4k:gap-14 h-full max-lg:pb-16">
-            {/* Left column */}
-            <div
-              className={`lg:bg-white/[9%] py-4 xs:py-6 4k:py-10 max-4k:rounded-s-none rounded-tr-2.5xl ${mobileOverlayContent && "max-lg:hidden"} overflow-hidden h-full flex flex-col `}
-            >
-              <StakingPoolsList
-                selectedPoolType={selectedPoolType}
-                setSelectedPoolType={setSelectedPoolType}
-                setViewClaim={setViewClaim}
-              />
-            </div>
-
-            {desktopColumnContent}
-
-            {mobileOverlayContent}
-
-            <MobilePopup
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
-              isWalletConnected={!!isWalletConnected}
+        <div
+          className="grow relative mx-auto overflow-y-hidden max-w-screen-4k w-full"
+        >
+          {/* Tab Navigation */}
+          <div className="px-4 lg:px-8 xl:px-12 4k:px-16">
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
             />
-
-            {mobileBottomNavition}
           </div>
+
+          {activeTab === "stake" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 4k:gap-14 h-full max-lg:pb-16">
+              {/* Left column */}
+              <div
+                className={`lg:bg-white/[9%] py-4 xs:py-6 4k:py-10 max-4k:rounded-s-none rounded-tr-2.5xl ${mobileOverlayContent && "max-lg:hidden"} overflow-hidden h-full flex flex-col `}
+              >
+                <StakingPoolsList
+                  selectedPoolType={selectedPoolType}
+                  setSelectedPoolType={setSelectedPoolType}
+                  setViewClaim={setViewClaim}
+                />
+              </div>
+
+              {desktopColumnContent}
+
+              {mobileOverlayContent}
+
+              <MobilePopup
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                isWalletConnected={!!isWalletConnected}
+              />
+
+              {mobileBottomNavition}
+            </div>
+          ) : (
+            <div className="px-4 lg:px-8 xl:px-12 4k:px-16 h-full max-lg:pb-16">
+              <BridgeView />
+            </div>
+          )}
         </div>
 
         <Modal
