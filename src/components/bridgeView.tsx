@@ -18,7 +18,10 @@ const BridgeView: React.FC = () => {
           </p>
         </div>
         <div className="flex-1 overflow-y-auto scrollbar-aqua px-4 lg:px-6 pb-4 lg:pb-6">
-          <BridgeWidget className="w-full" onAffiliateFeeChange={setFeePercent} />
+          <BridgeWidget
+            className="w-full"
+            onAffiliateFeeChange={setFeePercent}
+          />
         </div>
       </div>
 
