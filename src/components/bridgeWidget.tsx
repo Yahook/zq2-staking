@@ -291,11 +291,6 @@ export function BridgeWidget({
   // Update active wallet when it changes and re-register with widget
   useEffect(() => {
     if (widgetRef.current && initializedRef.current) {
-      console.debug(
-        "[BridgeWidget] Active wallet changed, refreshing and re-registering:",
-        activeWallet?.name || "none"
-      )
-
       // Refresh active wallet detection
       refreshActiveWallet()
 

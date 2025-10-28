@@ -25,24 +25,12 @@ export function useBridgeWallets() {
     try {
       if (provider.request) {
         const accounts = await provider.request({ method: "eth_accounts" })
-        const hasAccounts = Array.isArray(accounts) && accounts.length > 0
-        console.debug(
-          "[useBridgeWallets] Checking accounts:",
-          accounts,
-          "hasAccounts:",
-          hasAccounts
-        )
-        return hasAccounts
+        return Array.isArray(accounts) && accounts.length > 0
       }
       // Legacy support
       if (provider.selectedAddress) {
-        console.debug(
-          "[useBridgeWallets] Legacy selectedAddress found:",
-          provider.selectedAddress
-        )
         return true
       }
-      console.debug("[useBridgeWallets] No accounts found")
       return false
     } catch (error) {
       console.debug("[useBridgeWallets] Failed to check accounts:", error)
@@ -103,12 +91,7 @@ export function useBridgeWallets() {
       return
     }
 
-    console.debug(
-      `[useBridgeWallets] Registering active wallet with deBridge widget: ${activeWallet?.name || "none"}`
-    )
-
     if (!activeWallet) {
-      console.debug("[useBridgeWallets] No active wallet to register")
       return
     }
 
@@ -118,15 +101,10 @@ export function useBridgeWallets() {
         name: activeWallet.name,
         imageSrc: activeWallet.icon,
       })
-      console.debug(
-        `[useBridgeWallets] Registered wallet: ${activeWallet.name}`
-      )
+      console.debug(`[Bridge] Registered wallet: ${activeWallet.name}`)
       walletRegistered.current = true
     } catch (error) {
-      console.warn(
-        `[useBridgeWallets] Failed to register ${activeWallet.name}:`,
-        error
-      )
+      console.warn(`[Bridge] Failed to register ${activeWallet.name}:`, error)
     }
   }
 
@@ -134,7 +112,6 @@ export function useBridgeWallets() {
   const setupWidgetEvents = (widget: DeBridgeWidget, force = false) => {
     // Listen for needConnect event to register active wallet
     widget.on("needConnect", () => {
-      console.debug("[useBridgeWallets] needConnect event received")
       registerWalletWithWidget(widget, true) // Force registration on needConnect
     })
 
@@ -162,12 +139,7 @@ export function useBridgeWallets() {
 
   // Listen for account changes to update active wallet
   useEffect(() => {
-    const handleAccountsChanged = (accounts: string[]) => {
-      console.debug(
-        "[useBridgeWallets] Accounts changed:",
-        accounts,
-        "refreshing active wallet"
-      )
+    const handleAccountsChanged = () => {
       // Small delay to ensure wallet state is updated
       setTimeout(() => {
         refreshActiveWallet()
@@ -175,18 +147,12 @@ export function useBridgeWallets() {
     }
 
     const handleConnect = () => {
-      console.debug(
-        "[useBridgeWallets] Wallet connected, refreshing active wallet"
-      )
       setTimeout(() => {
         refreshActiveWallet()
       }, 100)
     }
 
     const handleDisconnect = () => {
-      console.debug(
-        "[useBridgeWallets] Wallet disconnected, refreshing active wallet"
-      )
       setTimeout(() => {
         refreshActiveWallet()
       }, 100)
