@@ -10,12 +10,18 @@ import {
 } from "@/misc/bridgeConfig"
 import { isEligibleForZeroFee } from "@/misc/stakingChecker"
 import { WalletConnector } from "@/contexts/walletConnector"
+import { useBridgeWallets } from "@/hooks/useBridgeWallets"
 
 type DeBridgeWidget = {
   on: (eventName: string, cb: (...args: unknown[]) => void) => void
   setAffiliateFee: (cfg: {
     evm?: { affiliateFeePercent: string; affiliateFeeRecipient: string }
     solana?: { affiliateFeePercent: string; affiliateFeeRecipient: string }
+  }) => void
+  setExternalEVMWallet: (cfg: {
+    provider: any
+    name: string
+    imageSrc: string
   }) => void
   destroy?: () => void
 }
@@ -79,6 +85,7 @@ export function BridgeWidget({
   const widgetRef = useRef<DeBridgeWidget | null>(null)
   const initializedRef = useRef(false)
   const lastAddressRef = useRef<string | null>(null)
+  const { setupWidgetEvents } = useBridgeWallets()
 
   const getUserAddress = useCallback((): `0x${string}` | null => {
     if (walletAddress) {
@@ -224,6 +231,9 @@ export function BridgeWidget({
 
       lastAddressRef.current = userAddress
       await checkAndSetFee(widget, userAddress, false)
+
+      // Setup external wallet detection and registration
+      setupWidgetEvents(widget)
 
       widget.on("order", () => {})
       widget.on("bridge", () => {})

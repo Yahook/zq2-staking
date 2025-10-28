@@ -13,7 +13,8 @@ const PreviewAuthentication = () => {
 
   const { push } = useRouter()
 
-  if (isPreviewAuthenticated) {
+  // Only redirect on client side
+  if (typeof window !== "undefined" && isPreviewAuthenticated) {
     push("/")
   }
 
