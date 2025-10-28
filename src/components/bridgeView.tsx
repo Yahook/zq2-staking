@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { BridgeWidget, BridgeFeeInfo } from "./bridgeWidget"
 import { AFFILIATE_DEFAULT_PERCENT } from "@/misc/bridgeConfig"
+import WalletDebugInfo from "./walletDebugInfo"
 
 const BridgeView: React.FC = () => {
   const [feePercent, setFeePercent] = useState<number>(
@@ -29,6 +30,9 @@ const BridgeView: React.FC = () => {
       <div className="lg:hidden">
         <BridgeFeeInfo feePercent={feePercent} />
       </div>
+
+      {/* Debug Info - Development Only */}
+      <WalletDebugInfo />
     </div>
   )
 }

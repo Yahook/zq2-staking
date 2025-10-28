@@ -25,12 +25,24 @@ export function useBridgeWallets() {
     try {
       if (provider.request) {
         const accounts = await provider.request({ method: "eth_accounts" })
-        return Array.isArray(accounts) && accounts.length > 0
+        const hasAccounts = Array.isArray(accounts) && accounts.length > 0
+        console.debug(
+          "[useBridgeWallets] Checking accounts:",
+          accounts,
+          "hasAccounts:",
+          hasAccounts
+        )
+        return hasAccounts
       }
       // Legacy support
       if (provider.selectedAddress) {
+        console.debug(
+          "[useBridgeWallets] Legacy selectedAddress found:",
+          provider.selectedAddress
+        )
         return true
       }
+      console.debug("[useBridgeWallets] No accounts found")
       return false
     } catch (error) {
       console.debug("[useBridgeWallets] Failed to check accounts:", error)
@@ -86,14 +98,19 @@ export function useBridgeWallets() {
   }
 
   // Register active wallet with deBridge widget
-  const registerWalletWithWidget = (widget: DeBridgeWidget) => {
-    if (walletRegistered.current || !activeWallet) {
+  const registerWalletWithWidget = (widget: DeBridgeWidget, force = false) => {
+    if (!force && (walletRegistered.current || !activeWallet)) {
       return
     }
 
     console.debug(
-      `[useBridgeWallets] Registering active wallet with deBridge widget: ${activeWallet.name}`
+      `[useBridgeWallets] Registering active wallet with deBridge widget: ${activeWallet?.name || "none"}`
     )
+
+    if (!activeWallet) {
+      console.debug("[useBridgeWallets] No active wallet to register")
+      return
+    }
 
     try {
       widget.setExternalEVMWallet({
@@ -114,15 +131,15 @@ export function useBridgeWallets() {
   }
 
   // Setup widget event listeners
-  const setupWidgetEvents = (widget: DeBridgeWidget) => {
+  const setupWidgetEvents = (widget: DeBridgeWidget, force = false) => {
     // Listen for needConnect event to register active wallet
     widget.on("needConnect", () => {
       console.debug("[useBridgeWallets] needConnect event received")
-      registerWalletWithWidget(widget)
+      registerWalletWithWidget(widget, true) // Force registration on needConnect
     })
 
     // Also register wallet immediately in case needConnect was already fired
-    registerWalletWithWidget(widget)
+    registerWalletWithWidget(widget, force)
   }
 
   // Reset registration state when active wallet changes
@@ -145,17 +162,42 @@ export function useBridgeWallets() {
 
   // Listen for account changes to update active wallet
   useEffect(() => {
-    const handleAccountsChanged = () => {
+    const handleAccountsChanged = (accounts: string[]) => {
       console.debug(
-        "[useBridgeWallets] Accounts changed, refreshing active wallet"
+        "[useBridgeWallets] Accounts changed:",
+        accounts,
+        "refreshing active wallet"
       )
-      refreshActiveWallet()
+      // Small delay to ensure wallet state is updated
+      setTimeout(() => {
+        refreshActiveWallet()
+      }, 100)
+    }
+
+    const handleConnect = () => {
+      console.debug(
+        "[useBridgeWallets] Wallet connected, refreshing active wallet"
+      )
+      setTimeout(() => {
+        refreshActiveWallet()
+      }, 100)
+    }
+
+    const handleDisconnect = () => {
+      console.debug(
+        "[useBridgeWallets] Wallet disconnected, refreshing active wallet"
+      )
+      setTimeout(() => {
+        refreshActiveWallet()
+      }, 100)
     }
 
     // Listen to account changes on all detected wallets
     detectedWallets.forEach((wallet) => {
       if (wallet.provider.on) {
         wallet.provider.on("accountsChanged", handleAccountsChanged)
+        wallet.provider.on("connect", handleConnect)
+        wallet.provider.on("disconnect", handleDisconnect)
       }
     })
 
@@ -167,10 +209,12 @@ export function useBridgeWallets() {
             "accountsChanged",
             handleAccountsChanged
           )
+          wallet.provider.removeListener("connect", handleConnect)
+          wallet.provider.removeListener("disconnect", handleDisconnect)
         }
       })
     }
-  }, [detectedWallets])
+  }, [detectedWallets, refreshActiveWallet])
 
   return {
     detectedWallets,

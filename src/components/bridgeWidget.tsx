@@ -85,7 +85,8 @@ export function BridgeWidget({
   const widgetRef = useRef<DeBridgeWidget | null>(null)
   const initializedRef = useRef(false)
   const lastAddressRef = useRef<string | null>(null)
-  const { setupWidgetEvents } = useBridgeWallets()
+  const { setupWidgetEvents, activeWallet, refreshActiveWallet } =
+    useBridgeWallets()
 
   const getUserAddress = useCallback((): `0x${string}` | null => {
     if (walletAddress) {
@@ -286,6 +287,22 @@ export function BridgeWidget({
       }
     }
   }, [walletAddress, getUserAddress, checkAndSetFee])
+
+  // Update active wallet when it changes and re-register with widget
+  useEffect(() => {
+    if (widgetRef.current && initializedRef.current) {
+      console.debug(
+        "[BridgeWidget] Active wallet changed, refreshing and re-registering:",
+        activeWallet?.name || "none"
+      )
+
+      // Refresh active wallet detection
+      refreshActiveWallet()
+
+      // Re-setup widget events with new active wallet (force registration)
+      setupWidgetEvents(widgetRef.current, true)
+    }
+  }, [activeWallet, refreshActiveWallet, setupWidgetEvents])
 
   return (
     <div
