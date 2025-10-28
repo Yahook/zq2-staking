@@ -4,6 +4,7 @@ import {
   DetectedWallet,
   isEVMProvider,
 } from "@/misc/walletDetection"
+import { WalletConnector } from "@/contexts/walletConnector"
 
 type DeBridgeWidget = {
   setExternalEVMWallet: (config: {
@@ -20,6 +21,9 @@ export function useBridgeWallets() {
   const [isDetecting, setIsDetecting] = useState(false)
   const walletRegistered = useRef(false)
   const lastRegisteredWallet = useRef<string | null>(null)
+
+  // Get main site wallet connection status
+  const { isWalletConnected, walletAddress } = WalletConnector.useContainer()
 
   // Check if a wallet has active accounts
   const hasActiveAccounts = async (provider: any): Promise<boolean> => {
@@ -41,6 +45,40 @@ export function useBridgeWallets() {
 
   // Find the active (connected) wallet
   const findActiveWallet = async (wallets: DetectedWallet[]) => {
+    // If main site wallet is connected, prioritize finding matching wallet
+    if (isWalletConnected && walletAddress) {
+      console.debug(
+        `[useBridgeWallets] Main site wallet connected: ${walletAddress}`
+      )
+
+      // Try to find a wallet that matches the connected address
+      for (const wallet of wallets) {
+        try {
+          const accounts = await wallet.provider.request?.({
+            method: "eth_accounts",
+          })
+          if (Array.isArray(accounts) && accounts.length > 0) {
+            const walletAddress_lower = walletAddress.toLowerCase()
+            const hasMatchingAccount = accounts.some(
+              (account: string) => account.toLowerCase() === walletAddress_lower
+            )
+            if (hasMatchingAccount) {
+              console.debug(
+                `[useBridgeWallets] Found matching wallet: ${wallet.name}`
+              )
+              return wallet
+            }
+          }
+        } catch (error) {
+          console.debug(
+            `[useBridgeWallets] Error checking ${wallet.name}:`,
+            error
+          )
+        }
+      }
+    }
+
+    // Fallback to original logic - find any active wallet
     for (const wallet of wallets) {
       const isActive = await hasActiveAccounts(wallet.provider)
       if (isActive) {
@@ -149,12 +187,23 @@ export function useBridgeWallets() {
         setActiveWallet(active)
       }
     }
-  }, [detectedWallets, activeWallet])
+  }, [detectedWallets, activeWallet, isWalletConnected, walletAddress])
 
   // Initial wallet detection
   useEffect(() => {
     detectWallets()
   }, [])
+
+  // React to main site wallet connection changes
+  useEffect(() => {
+    if (detectedWallets.length > 0) {
+      console.debug("[useBridgeWallets] Main site wallet connection changed:", {
+        isWalletConnected,
+        walletAddress,
+      })
+      refreshActiveWallet()
+    }
+  }, [isWalletConnected, walletAddress, detectedWallets, refreshActiveWallet])
 
   // Listen for account changes to update active wallet
   useEffect(() => {
