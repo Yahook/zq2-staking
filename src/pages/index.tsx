@@ -439,7 +439,11 @@ const HomePage = () => {
             </div>
           )}
         </div>
-        <div className="grow relative mx-auto overflow-y-hidden max-w-screen-4k w-full">
+        <div
+          className={`grow relative mx-auto max-w-screen-4k w-full ${
+            activeTab === "stake" ? "overflow-y-hidden" : "overflow-y-auto"
+          }`}
+        >
           {/* Tab Navigation */}
           <div className="px-4 lg:px-8 xl:px-12 4k:px-16">
             <TabNavigation
@@ -474,7 +478,7 @@ const HomePage = () => {
               {mobileBottomNavition}
             </div>
           ) : (
-            <div className="px-4 lg:px-8 xl:px-12 4k:px-16 h-full max-lg:pb-16">
+            <div className="px-4 lg:px-8 xl:px-12 4k:px-16 lg:h-full">
               <BridgeView />
             </div>
           )}
