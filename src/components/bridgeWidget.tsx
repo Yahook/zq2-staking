@@ -290,14 +290,11 @@ export function BridgeWidget({
 
   // Update active wallet when it changes and re-register with widget
   useEffect(() => {
-    if (widgetRef.current && initializedRef.current) {
-      // Refresh active wallet detection
-      refreshActiveWallet()
-
-      // Re-setup widget events with new active wallet (force registration)
+    if (widgetRef.current && initializedRef.current && activeWallet) {
+      // Only re-register if we have a new active wallet
       setupWidgetEvents(widgetRef.current, true)
     }
-  }, [activeWallet, refreshActiveWallet, setupWidgetEvents])
+  }, [activeWallet, setupWidgetEvents])
 
   return (
     <div
