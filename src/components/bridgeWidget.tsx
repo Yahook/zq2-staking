@@ -81,12 +81,14 @@ export function BridgeWidget({
   className,
   onAffiliateFeeChange,
 }: BridgeWidgetProps) {
-  const { walletAddress } = WalletConnector.useContainer()
   const widgetRef = useRef<DeBridgeWidget | null>(null)
   const initializedRef = useRef(false)
   const lastAddressRef = useRef<string | null>(null)
   const { setupWidgetEvents, activeWallet, refreshActiveWallet } =
     useBridgeWallets()
+
+  // Track main site wallet connection
+  const { isWalletConnected, walletAddress } = WalletConnector.useContainer()
 
   const getUserAddress = useCallback((): `0x${string}` | null => {
     if (walletAddress) {
@@ -291,10 +293,46 @@ export function BridgeWidget({
   // Update active wallet when it changes and re-register with widget
   useEffect(() => {
     if (widgetRef.current && initializedRef.current && activeWallet) {
+      console.debug(
+        "[BridgeWidget] Active wallet changed, re-registering:",
+        activeWallet.name
+      )
       // Only re-register if we have a new active wallet
       setupWidgetEvents(widgetRef.current, true)
     }
   }, [activeWallet, setupWidgetEvents])
+
+  // Force widget update when main site wallet connection changes
+  useEffect(() => {
+    if (widgetRef.current && initializedRef.current) {
+      console.debug("[BridgeWidget] Main site wallet connection changed:", {
+        isWalletConnected,
+        walletAddress,
+        activeWallet: activeWallet?.name,
+      })
+
+      // Force refresh active wallet detection
+      refreshActiveWallet()
+
+      // If wallet is connected, force re-registration after a short delay
+      if (isWalletConnected && walletAddress) {
+        setTimeout(() => {
+          if (widgetRef.current && activeWallet) {
+            console.debug(
+              "[BridgeWidget] Force re-registering wallet after connection"
+            )
+            setupWidgetEvents(widgetRef.current, true)
+          }
+        }, 1000) // 1 second delay to ensure wallet is fully connected
+      }
+    }
+  }, [
+    isWalletConnected,
+    walletAddress,
+    refreshActiveWallet,
+    setupWidgetEvents,
+    activeWallet,
+  ])
 
   return (
     <div

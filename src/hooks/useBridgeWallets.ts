@@ -185,6 +185,13 @@ export function useBridgeWallets() {
           active?.name || "none"
         )
         setActiveWallet(active)
+      } else if (active && isWalletConnected && walletAddress) {
+        // Even if same wallet, force update registration state when main wallet is connected
+        console.debug(
+          "[useBridgeWallets] Same wallet but main site connected - resetting registration"
+        )
+        lastRegisteredWallet.current = null
+        walletRegistered.current = false
       }
     }
   }, [detectedWallets, activeWallet, isWalletConnected, walletAddress])
@@ -200,10 +207,28 @@ export function useBridgeWallets() {
       console.debug("[useBridgeWallets] Main site wallet connection changed:", {
         isWalletConnected,
         walletAddress,
+        currentActiveWallet: activeWallet?.name,
       })
+
+      // Force refresh when wallet connects/disconnects
       refreshActiveWallet()
+
+      // Reset registration state to force re-registration
+      if (isWalletConnected && walletAddress) {
+        console.debug(
+          "[useBridgeWallets] Wallet connected - forcing re-registration"
+        )
+        lastRegisteredWallet.current = null
+        walletRegistered.current = false
+      }
     }
-  }, [isWalletConnected, walletAddress, detectedWallets, refreshActiveWallet])
+  }, [
+    isWalletConnected,
+    walletAddress,
+    detectedWallets,
+    refreshActiveWallet,
+    activeWallet?.name,
+  ])
 
   // Listen for account changes to update active wallet
   useEffect(() => {
