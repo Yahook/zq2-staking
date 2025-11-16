@@ -234,7 +234,7 @@ async function fetchNonLiquidDelegatorDataFromNetwork(
   }
 }
 
-const twoWeeksInMinutes = 60 * 24 * 14
+const twoWeeksInMinutes = 7694.67 // 461680 seconds / 60
 const fiveMinutesInMinutes = 5
 
 export const stakingPoolsConfigForChainId: Record<
