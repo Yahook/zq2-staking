@@ -97,17 +97,6 @@ const UnstakeCard: React.FC<UnstakeCardProps> = ({
               </>
             )}
           </div>
-          {stakingPool.definition.tokenSymbol &&
-            unstakeInfo.zilAmount &&
-            stakingPool.definition.poolType === StakingPoolType.LIQUID && (
-              <div
-                className={`${stakingPool.definition.tokenSymbol && unstakeInfo.zilAmount ? "max-lg:ml-2.5" : "ml-0"} medium15  lg:ml-2.5 4k:ml-3 max-lg:order-1`}
-              >
-                {unstakeInfo.zilAmount}
-                {stakingPool.definition.poolType === StakingPoolType.LIQUID &&
-                  stakingPool.definition.tokenSymbol}
-              </div>
-            )}
         </div>
       </div>
       <div className="max-lg:gap-2.5 max-lg:flex max-lg:justify-center lg:w-1/3 lg:max-w-[250px] w-full pr-3 lg:pb-0 pb-6 lg:pr-9 4k:pr-12">
@@ -115,7 +104,7 @@ const UnstakeCard: React.FC<UnstakeCardProps> = ({
           <Button
             className={` 
               ${stakingPool.definition.poolType === StakingPoolType.LIQUID ? " liquid-hover" : " non-liquid-hover"} btn-primary-grey 4k:py-6 lg:py-5 py-4`}
-            disabled={!available}
+            disabled={!available || unstakeInfo.zilAmount === 0n}
             onClick={(e) => {
               e.stopPropagation()
               claimUnstake(unstakeInfo.address)
@@ -214,14 +203,6 @@ const RewardCard: React.FC<RewardCardProps> = ({
               </>
             )}
           </div>
-          {rewardInfo.zilRewardAmount &&
-            stakingPool.definition.poolType === StakingPoolType.LIQUID && (
-              <div
-                className={`${rewardInfo.zilRewardAmount && "max-lg:ml-2.5"} medium15  lg:ml-2.5 4k:ml-3 max-lg:order-1`}
-              >
-                {rewardInfo.zilRewardAmount}
-              </div>
-            )}
         </div>
       </div>
       <div className="max-lg:gap-2.5 max-lg:flex lg:w-1/3 w-full lg:max-w-[250px] lg:pb-0 pb-6 lg:pr-9 4k:pr-12 max-lg:px-3">
@@ -252,7 +233,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
                   setViewClaim(false)
                 }}
                 loading={isStakingRewardInProgress}
-                disabled={true}
+                disabled={true || rewardInfo.zilRewardAmount === 0n}
               >
                 Stake Reward
               </Button>
@@ -273,6 +254,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
                 stakeReward(rewardInfo.address)
                 setViewClaim(false)
               }}
+              disabled={rewardInfo.zilRewardAmount === 0n}
               loading={isStakeRewardInProgress}
             >
               {preparingStakeRewardTx
@@ -301,6 +283,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
               claimReward(rewardInfo.address)
               setViewClaim(false)
             }}
+            disabled={rewardInfo.zilRewardAmount === 0n}
             loading={isClaimRewardInProgress}
           >
             {preparingClaimRewardTx

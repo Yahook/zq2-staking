@@ -119,7 +119,7 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                       ${stakingPoolData.definition.poolType === StakingPoolType.LIQUID ? " liquid-hover" : " non-liquid-hover"} btn-primary-grey lg:py-5 py-4 mb-2.5`}
                     onClick={() => stakeReward(reward.address)}
                     loading={isStakingRewardInProgress}
-                    disabled={true}
+                    disabled={true || (reward?.zilRewardAmount ?? 0n) === 0n}
                   >
                     Stake Reward
                   </Button>
@@ -137,6 +137,7 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                     }
                     ${stakingPoolData.definition.poolType === StakingPoolType.LIQUID ? " liquid-hover" : " non-liquid-hover"} btn-primary-grey lg:py-5 py-4 mb-2.5`}
                   onClick={() => stakeReward(reward.address)}
+                  disabled={(reward?.zilRewardAmount ?? 0n) === 0n}
                   loading={isStakingRewardInProgress}
                 >
                   {preparingStakeRewardTx
@@ -166,6 +167,7 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                    }
                  lg:py-5 py-4`}
                 onClick={() => claimReward(reward.address)}
+                disabled={(reward?.zilRewardAmount ?? 0n) === 0n}
                 loading={isClaimingRewardInProgress}
               >
                 {preparingClaimRewardTx
@@ -217,6 +219,7 @@ const WithdrawZilPanel: React.FC<WithdrawZilPanelProps> = ({
                   }
                   ${stakingPoolData.definition.poolType === StakingPoolType.LIQUID ? " liquid-hover" : " non-liquid-hover"} btn-primary-grey lg:py-5 py-4`}
                 onClick={() => claimUnstake(stakingPoolData.definition.address)}
+                disabled={availableUnstake === 0n}
                 loading={isClaimingUnstakeInProgress}
               >
                 {preparingClaimUnstakeTx

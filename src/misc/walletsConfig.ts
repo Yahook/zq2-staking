@@ -332,20 +332,27 @@ export async function getWalletUnstakingData(
     // get unstaking data from contracts
     const unstakingWalletData = await Promise.all(
       stakingPoolsConfigForChainId[chainId].map(async (pool) => {
-        return {
-          address: pool.definition.address,
-          blockNumberAndAmount: await readContract(getViemClient(chainId), {
+        const blockNumberAndAmount = await readContract(
+          getViemClient(chainId),
+          {
             address: pool.definition.address as Address,
             abi: baseDelegatorAbi,
             functionName: "getPendingClaims",
             account: wallet as Address,
-          }),
-          claimableNow: (await readContract(getViemClient(chainId), {
-            address: pool.definition.address as Address,
-            abi: baseDelegatorAbi,
-            functionName: "getClaimable",
-            account: wallet as Address,
-          })) as bigint,
+          }
+        )
+
+        const claimableNow = (await readContract(getViemClient(chainId), {
+          address: pool.definition.address as Address,
+          abi: baseDelegatorAbi,
+          functionName: "getClaimable",
+          account: wallet as Address,
+        })) as bigint
+
+        return {
+          address: pool.definition.address,
+          blockNumberAndAmount,
+          claimableNow,
         }
       })
     )
@@ -368,19 +375,21 @@ export async function getWalletUnstakingData(
 
         if (uwd.blockNumberAndAmount.length > 0) {
           claims.push(
-            ...uwd.blockNumberAndAmount.map((bna) => {
-              const blocksRemaining = Number(bna[0] - currentBlockNumber)
+            ...uwd.blockNumberAndAmount
+              .filter((bna) => bna[1] > 0n) // Filter out zero amounts
+              .map((bna) => {
+                const blocksRemaining = Number(bna[0] - currentBlockNumber)
 
-              const blocksRemainingInSeconds = blocksRemaining * 1.11 // seconds per block
+                const blocksRemainingInSeconds = blocksRemaining * 1.11 // seconds per block
 
-              return {
-                zilAmount: bna[1],
-                availableAt: DateTime.now().plus({
-                  seconds: blocksRemainingInSeconds,
-                }),
-                address: uwd.address,
-              }
-            })
+                return {
+                  zilAmount: bna[1],
+                  availableAt: DateTime.now().plus({
+                    seconds: blocksRemainingInSeconds,
+                  }),
+                  address: uwd.address,
+                }
+              })
           )
         }
 

@@ -297,16 +297,20 @@ const useStakingPoolsStorage = () => {
     })) || []
 
   const combinedUserNonLiquidPoolRewards =
-    userNonLiquidPoolRewards?.map((rewardInfo) => ({
-      rewardInfo,
-      stakingPool: availableStakingPoolsData.find(
-        (pool) => pool.definition.address === rewardInfo.address
-      )!,
-    })) || []
+    userNonLiquidPoolRewards
+      ?.filter((rewardInfo) => rewardInfo.zilRewardAmount > 0n)
+      .map((rewardInfo) => ({
+        rewardInfo,
+        stakingPool: availableStakingPoolsData.find(
+          (pool) => pool.definition.address === rewardInfo.address
+        )!,
+      })) || []
 
   const availableForUnstaking = mergeAvailableWithdrawUnstakeRequests(
     combinedUserUnstakesData.filter(
-      (unstakeData) => unstakeData.unstakeInfo.availableAt <= DateTime.now()
+      (unstakeData) =>
+        unstakeData.unstakeInfo.availableAt <= DateTime.now() &&
+        unstakeData.unstakeInfo.zilAmount > 0n
     )
   )
 
