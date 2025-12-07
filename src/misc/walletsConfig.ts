@@ -332,27 +332,42 @@ export async function getWalletUnstakingData(
     // get unstaking data from contracts
     const unstakingWalletData = await Promise.all(
       stakingPoolsConfigForChainId[chainId].map(async (pool) => {
-        const blockNumberAndAmount = await readContract(
-          getViemClient(chainId),
-          {
+        try {
+          const blockNumberAndAmount = await readContract(
+            getViemClient(chainId),
+            {
+              address: pool.definition.address as Address,
+              abi: baseDelegatorAbi,
+              functionName: "getPendingClaims",
+              account: wallet as Address,
+            }
+          )
+
+          const claimableNow = (await readContract(getViemClient(chainId), {
             address: pool.definition.address as Address,
             abi: baseDelegatorAbi,
-            functionName: "getPendingClaims",
+            functionName: "getClaimable",
             account: wallet as Address,
+          })) as bigint
+
+          // Filter out zero-amount claims (contract optimization artifacts)
+          const validClaims = blockNumberAndAmount.filter((bna) => bna[1] > 0n)
+
+          return {
+            address: pool.definition.address,
+            blockNumberAndAmount: validClaims,
+            claimableNow,
           }
-        )
-
-        const claimableNow = (await readContract(getViemClient(chainId), {
-          address: pool.definition.address as Address,
-          abi: baseDelegatorAbi,
-          functionName: "getClaimable",
-          account: wallet as Address,
-        })) as bigint
-
-        return {
-          address: pool.definition.address,
-          blockNumberAndAmount,
-          claimableNow,
+        } catch (error) {
+          console.warn(
+            `Failed to fetch unstaking data for ${pool.definition.name}:`,
+            error
+          )
+          return {
+            address: pool.definition.address,
+            blockNumberAndAmount: [],
+            claimableNow: 0n,
+          }
         }
       })
     )
