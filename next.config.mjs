@@ -6,6 +6,15 @@ const nextConfig = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  async redirects() {
+    return [
+      {
+        source: "/bridge",
+        destination: "/?tab=bridge",
+        permanent: true, // 301 redirect
+      },
+    ]
+  },
   transpilePackages: [
     "@ant-design",
     "antd",
