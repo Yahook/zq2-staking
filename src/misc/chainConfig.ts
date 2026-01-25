@@ -104,7 +104,7 @@ export const CHAIN_MAINNET = defineChain({
   nativeCurrency: { name: "ZIL", symbol: "ZIL", decimals: 18 },
   rpcUrls: {
     default: {
-      http: ["https://api.zilliqa.com"],
+      http: ["https://ssn.zilpay.io/api"],
     },
   },
   blockExplorers: {
