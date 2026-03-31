@@ -6,12 +6,25 @@ import {
   type Address,
 } from "viem"
 import Big from "big.js"
-import {
-  ZIL_EVM_RPC,
-  STAKING_MIN_ZIL,
-  ELIGIBILITY_POOLS,
-  CHAIN,
-} from "./bridgeConfig"
+
+const ZIL_EVM_RPC = "https://ssn.zilpay.io/api" as const
+
+const STAKING_MIN_ZIL = 20_000
+
+const ELIGIBILITY_POOLS = [
+  {
+    name: "Amazing Pool",
+    proxy: "0x1f0e86Bc299Cc66df2e5512a7786C3F528C0b5b6",
+  },
+  {
+    name: "2ZilMoon",
+    proxy: "0xCDb0B23Db1439b28689844FD093C478d73C0786A",
+  },
+] as const
+
+const CHAIN = {
+  ZIL_EVM: 32769,
+} as const
 
 Big.DP = 40
 Big.RM = 0
