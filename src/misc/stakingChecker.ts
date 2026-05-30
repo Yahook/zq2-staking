@@ -7,7 +7,7 @@ import {
 } from "viem"
 import Big from "big.js"
 
-const ZIL_EVM_RPC = "https://ssn.zilpay.io/api" as const
+const ZIL_EVM_RPC = "https://api.zilliqa.com" as const
 
 const STAKING_MIN_ZIL = 20_000
 
