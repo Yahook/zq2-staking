@@ -9,7 +9,13 @@ import {
   trustWallet,
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets"
-import { createClient, createPublicClient, defineChain, http } from "viem"
+import {
+  createClient,
+  createPublicClient,
+  defineChain,
+  fallback,
+  http,
+} from "viem"
 import { createConfig } from "wagmi"
 import { zilPayWallet } from "./zilPayWallet"
 
@@ -104,7 +110,7 @@ export const CHAIN_MAINNET = defineChain({
   nativeCurrency: { name: "ZIL", symbol: "ZIL", decimals: 18 },
   rpcUrls: {
     default: {
-      http: ["https://api.zilliqa.com"],
+      http: ["https://ssn.zilpay.io/api", "https://api.zilliqa.com"],
     },
   },
   blockExplorers: {
@@ -114,6 +120,16 @@ export const CHAIN_MAINNET = defineChain({
     },
   },
 })
+
+/**
+ * Build a viem transport from a chain's `rpcUrls.default.http` list.
+ * The first URL is the primary node; the rest act as fallbacks (viem tries
+ * them in order when the primary errors). A single-URL list degrades to a
+ * plain `http()` transport wrapped in `fallback`, which behaves identically.
+ */
+function getTransport(chain: ReturnType<typeof defineChain>) {
+  return fallback(chain.rpcUrls.default.http.map((url: string) => http(url)))
+}
 
 function getConnectorsForWallets(walletConnectApiKey: string, appUrl: string) {
   const projectId = walletConnectApiKey
@@ -171,7 +187,7 @@ export function getWagmiConfig(
     wagmiConfig = createConfig({
       chains: [getChain(chainId)],
       client({ chain }) {
-        return createClient({ chain, transport: http() })
+        return createClient({ chain, transport: getTransport(chain) })
       },
       connectors: getConnectorsForWallets(walletConnectApiKey, appUrl),
       ssr: true,
@@ -182,8 +198,9 @@ export function getWagmiConfig(
 }
 
 export function getViemClient(chainId: number) {
+  const chain = getChain(chainId)
   return createPublicClient({
-    chain: getChain(chainId),
-    transport: http(),
+    chain,
+    transport: getTransport(chain),
   })
 }

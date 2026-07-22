@@ -1,13 +1,18 @@
 import {
   createPublicClient,
   http,
+  fallback,
   erc20Abi,
   getAddress,
   type Address,
 } from "viem"
 import Big from "big.js"
 
-const ZIL_EVM_RPC = "https://api.zilliqa.com" as const
+// Primary node first, official endpoint as fallback.
+const ZIL_EVM_RPCS = [
+  "https://ssn.zilpay.io/api",
+  "https://api.zilliqa.com",
+] as const
 
 const STAKING_MIN_ZIL = 20_000
 
@@ -34,9 +39,9 @@ const client = createPublicClient({
     id: CHAIN.ZIL_EVM,
     name: "Zilliqa EVM",
     nativeCurrency: { name: "ZIL", symbol: "ZIL", decimals: 18 },
-    rpcUrls: { default: { http: [ZIL_EVM_RPC] } },
+    rpcUrls: { default: { http: [...ZIL_EVM_RPCS] } },
   },
-  transport: http(ZIL_EVM_RPC),
+  transport: fallback(ZIL_EVM_RPCS.map((url) => http(url))),
 })
 
 const pow10 = (n: number) => Big(10).pow(n)
