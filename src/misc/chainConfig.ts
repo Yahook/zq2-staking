@@ -124,12 +124,21 @@ export const CHAIN_MAINNET = defineChain({
 })
 
 /**
- * A node whose head trails the freshest node by more than this many blocks
- * (~1.1s per block) is treated as stuck and pushed to the end of the list.
+ * A node is treated as stuck and pushed to the end of the list when its head
+ * trails the freshest node by more than MAX_BLOCK_LAG blocks (~1.1s each), or
+ * when its head block is older than MAX_HEAD_AGE_S. The age check catches a
+ * stuck node even when it is the only one that answered the probe.
  */
 const MAX_BLOCK_LAG = 60n
+const MAX_HEAD_AGE_S = 10n * 60n
 const NODE_ORDER_TTL_MS = 30_000
-const HEAD_PROBE_TIMEOUT_MS = 3_000
+// a cold browser connection to api.zilliqa.com (TLS + CORS preflight) takes ~3s
+const HEAD_PROBE_TIMEOUT_MS = 8_000
+
+interface NodeHead {
+  number: bigint
+  timestamp: bigint
+}
 
 interface NodeOrderEntry {
   order: string[]
@@ -141,13 +150,17 @@ interface NodeOrderEntry {
 // short-lived clients from getViemClient() don't each re-probe the nodes.
 const nodeOrderCache = new Map<string, NodeOrderEntry>()
 
-async function probeHeadBlock(url: string): Promise<bigint | null> {
+async function probeHead(url: string): Promise<NodeHead | null> {
   try {
     const { request } = http(url, {
       retryCount: 0,
       timeout: HEAD_PROBE_TIMEOUT_MS,
     })({})
-    return BigInt((await request({ method: "eth_blockNumber" })) as string)
+    const block = (await request({
+      method: "eth_getBlockByNumber",
+      params: ["latest", false],
+    })) as { number: string; timestamp: string }
+    return { number: BigInt(block.number), timestamp: BigInt(block.timestamp) }
   } catch {
     return null
   }
@@ -159,20 +172,28 @@ async function probeHeadBlock(url: string): Promise<bigint | null> {
  * with old state instead of erroring, so plain `fallback` never leaves it.
  */
 async function rankNodesByFreshness(urls: string[]): Promise<string[]> {
-  const heads = await Promise.all(urls.map(probeHeadBlock))
-  const known = heads.filter((head): head is bigint => head !== null)
+  const heads = await Promise.all(urls.map(probeHead))
+  const known = heads.filter((head): head is NodeHead => head !== null)
   if (known.length === 0) return urls
 
-  const best = known.reduce((a, b) => (a > b ? a : b))
-  const isFresh = (i: number) =>
-    heads[i] !== null && best - heads[i]! <= MAX_BLOCK_LAG
+  const best = known.reduce((a, b) => (a > b.number ? a : b.number), 0n)
+  const nowS = BigInt(Math.floor(Date.now() / 1000))
+  const isFresh = (head: NodeHead | null) =>
+    head !== null &&
+    best - head.number <= MAX_BLOCK_LAG &&
+    nowS - head.timestamp <= MAX_HEAD_AGE_S
 
-  const fresh = urls.filter((_, i) => isFresh(i))
-  const lagging = urls.filter((_, i) => !isFresh(i))
+  const fresh = urls.filter((_, i) => isFresh(heads[i]))
+  const lagging = urls.filter((_, i) => !isFresh(heads[i]))
   if (lagging.length > 0) {
     console.warn(
       "RPC nodes behind chain head, demoted:",
-      lagging.map((url) => `${url} @ ${heads[urls.indexOf(url)] ?? "down"}`),
+      lagging.map((url) => {
+        const head = heads[urls.indexOf(url)]
+        return head
+          ? `${url} @ ${head.number} (${nowS - head.timestamp}s old)`
+          : `${url} @ down`
+      }),
       `head ${best}`
     )
   }
