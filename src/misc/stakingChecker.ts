@@ -1,18 +1,6 @@
-import {
-  createPublicClient,
-  http,
-  fallback,
-  erc20Abi,
-  getAddress,
-  type Address,
-} from "viem"
+import { erc20Abi, getAddress, type Address } from "viem"
 import Big from "big.js"
-
-// Primary node first, official endpoint as fallback.
-const ZIL_EVM_RPCS = [
-  "https://ssn.zilpay.io/api",
-  "https://api.zilliqa.com",
-] as const
+import { CHAIN_MAINNET, getViemClient } from "./chainConfig"
 
 const STAKING_MIN_ZIL = 20_000
 
@@ -27,22 +15,11 @@ const ELIGIBILITY_POOLS = [
   },
 ] as const
 
-const CHAIN = {
-  ZIL_EVM: 32769,
-} as const
-
 Big.DP = 40
 Big.RM = 0
 
-const client = createPublicClient({
-  chain: {
-    id: CHAIN.ZIL_EVM,
-    name: "Zilliqa EVM",
-    nativeCurrency: { name: "ZIL", symbol: "ZIL", decimals: 18 },
-    rpcUrls: { default: { http: [...ZIL_EVM_RPCS] } },
-  },
-  transport: fallback(ZIL_EVM_RPCS.map((url) => http(url))),
-})
+// Same node list and stuck-node detection as the rest of the app.
+const client = getViemClient(CHAIN_MAINNET.id)
 
 const pow10 = (n: number) => Big(10).pow(n)
 

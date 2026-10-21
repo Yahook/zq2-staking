@@ -12,9 +12,11 @@ import {
 import {
   createClient,
   createPublicClient,
+  createTransport,
   defineChain,
   fallback,
   http,
+  type Transport,
 } from "viem"
 import { createConfig } from "wagmi"
 import { zilPayWallet } from "./zilPayWallet"
@@ -110,7 +112,7 @@ export const CHAIN_MAINNET = defineChain({
   nativeCurrency: { name: "ZIL", symbol: "ZIL", decimals: 18 },
   rpcUrls: {
     default: {
-      http: ["https://ssn.zilpay.io/api", "https://api.zilliqa.com"],
+      http: ["https://api.zilliqa.com", "https://ssn.zilpay.io/api"],
     },
   },
   blockExplorers: {
@@ -122,13 +124,126 @@ export const CHAIN_MAINNET = defineChain({
 })
 
 /**
- * Build a viem transport from a chain's `rpcUrls.default.http` list.
- * The first URL is the primary node; the rest act as fallbacks (viem tries
- * them in order when the primary errors). A single-URL list degrades to a
- * plain `http()` transport wrapped in `fallback`, which behaves identically.
+ * A node whose head trails the freshest node by more than this many blocks
+ * (~1.1s per block) is treated as stuck and pushed to the end of the list.
  */
-function getTransport(chain: ReturnType<typeof defineChain>) {
-  return fallback(chain.rpcUrls.default.http.map((url: string) => http(url)))
+const MAX_BLOCK_LAG = 60n
+const NODE_ORDER_TTL_MS = 30_000
+const HEAD_PROBE_TIMEOUT_MS = 3_000
+
+interface NodeOrderEntry {
+  order: string[]
+  checkedAt: number
+  pending: Promise<string[]> | null
+}
+
+// Shared by every client built from the same URL list, so the many
+// short-lived clients from getViemClient() don't each re-probe the nodes.
+const nodeOrderCache = new Map<string, NodeOrderEntry>()
+
+async function probeHeadBlock(url: string): Promise<bigint | null> {
+  try {
+    const { request } = http(url, {
+      retryCount: 0,
+      timeout: HEAD_PROBE_TIMEOUT_MS,
+    })({})
+    return BigInt((await request({ method: "eth_blockNumber" })) as string)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Orders nodes so that the ones in sync with the chain head come first.
+ * Configured priority is kept inside each group. A stuck node keeps answering
+ * with old state instead of erroring, so plain `fallback` never leaves it.
+ */
+async function rankNodesByFreshness(urls: string[]): Promise<string[]> {
+  const heads = await Promise.all(urls.map(probeHeadBlock))
+  const known = heads.filter((head): head is bigint => head !== null)
+  if (known.length === 0) return urls
+
+  const best = known.reduce((a, b) => (a > b ? a : b))
+  const isFresh = (i: number) =>
+    heads[i] !== null && best - heads[i]! <= MAX_BLOCK_LAG
+
+  const fresh = urls.filter((_, i) => isFresh(i))
+  const lagging = urls.filter((_, i) => !isFresh(i))
+  if (lagging.length > 0) {
+    console.warn(
+      "RPC nodes behind chain head, demoted:",
+      lagging.map((url) => `${url} @ ${heads[urls.indexOf(url)] ?? "down"}`),
+      `head ${best}`
+    )
+  }
+  return [...fresh, ...lagging]
+}
+
+async function getNodeOrder(urls: string[]): Promise<string[]> {
+  const key = urls.join(",")
+  let entry = nodeOrderCache.get(key)
+
+  if (!entry) {
+    entry = { order: urls, checkedAt: 0, pending: null }
+    nodeOrderCache.set(key, entry)
+  }
+
+  const isExpired = Date.now() - entry.checkedAt > NODE_ORDER_TTL_MS
+  if (isExpired && !entry.pending) {
+    const current = entry
+    current.pending = rankNodesByFreshness(urls)
+      .then((order) => {
+        current.order = order
+        current.checkedAt = Date.now()
+        return order
+      })
+      .finally(() => {
+        current.pending = null
+      })
+  }
+
+  // The first ranking is awaited; later refreshes run in the background
+  // while requests keep using the last known order.
+  if (entry.checkedAt === 0 && entry.pending) return entry.pending
+  return entry.order
+}
+
+/**
+ * Build a viem transport from a chain's `rpcUrls.default.http` list.
+ * The first URL is the primary node; the rest act as fallbacks. On top of
+ * viem's error-based `fallback`, nodes are re-ranked by chain head every
+ * NODE_ORDER_TTL_MS, so a node that is up but stuck on an old block is
+ * skipped. A single-URL list is a plain `http()` transport.
+ */
+function getTransport(chain: ReturnType<typeof defineChain>): Transport {
+  const urls = [...chain.rpcUrls.default.http]
+  if (urls.length < 2) return http(urls[0])
+
+  return (params) => {
+    const fallbackByOrder = new Map<string, ReturnType<Transport>>()
+    const fallbackFor = (order: string[]) => {
+      const key = order.join(",")
+      let transport = fallbackByOrder.get(key)
+      if (!transport) {
+        transport = fallback(order.map((url) => http(url)))(params)
+        fallbackByOrder.set(key, transport)
+      }
+      return transport
+    }
+
+    return createTransport({
+      key: "freshestFallback",
+      name: "Freshest-node fallback",
+      type: "freshestFallback",
+      // retries already happen inside the wrapped http/fallback transports
+      retryCount: 0,
+      // same `any` escape hatch viem's own fallback() uses for its generic request
+      async request({ method, params }): Promise<any> {
+        const order = await getNodeOrder(urls)
+        return fallbackFor(order).request({ method, params })
+      },
+    })
+  }
 }
 
 function getConnectorsForWallets(walletConnectApiKey: string, appUrl: string) {

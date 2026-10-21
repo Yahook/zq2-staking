@@ -435,14 +435,26 @@ export async function getWalletNonLiquidStakingPoolRewardData(
         stakingPoolsConfigForChainId[chainId]
           .filter((pool) => pool.definition.poolType === StakingPoolType.NORMAL)
           .map(async (pool) => {
-            return {
-              address: pool.definition.address,
-              zilRewardAmount: await readContract(getViemClient(chainId), {
-                address: pool.definition.address as Address,
-                abi: nonLiquidDelegatorAbi,
-                functionName: "rewards",
-                account: wallet as Address,
-              }),
+            // one failing pool must not hide the rewards of all the others
+            try {
+              return {
+                address: pool.definition.address,
+                zilRewardAmount: await readContract(getViemClient(chainId), {
+                  address: pool.definition.address as Address,
+                  abi: nonLiquidDelegatorAbi,
+                  functionName: "rewards",
+                  account: wallet as Address,
+                }),
+              }
+            } catch (error) {
+              console.warn(
+                `Failed to fetch rewards for ${pool.definition.name}:`,
+                error
+              )
+              return {
+                address: pool.definition.address,
+                zilRewardAmount: 0n,
+              }
             }
           })
       )
